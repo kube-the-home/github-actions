@@ -1,0 +1,36 @@
+name: Helm Lint
+
+on:
+  workflow_call:
+    inputs:
+      chart_path:
+        description: 'Path to the Helm chart directory (e.g. charts/my-chart)'
+        required: true
+        type: string
+      helm_version:
+        description: 'Helm version to install'
+        required: false
+        type: string
+        default: 'latest'
+      runs_on:
+        description: 'Runner OS to use'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+
+jobs:
+  lint:
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: ${{ inputs.helm_version }}
+
+      - name: Run Helm lint
+        run: helm lint ${{ inputs.chart_path }}

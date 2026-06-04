@@ -1,0 +1,102 @@
+name: Helm Release
+
+on:
+  workflow_call:
+    inputs:
+      chart_path:
+        description: 'Path to the Helm chart directory (e.g. charts/my-chart)'
+        required: true
+        type: string
+      version:
+        description: 'Chart version to release (without v prefix, e.g. 1.2.3)'
+        required: true
+        type: string
+      helm_version:
+        description: 'Helm version to install'
+        required: false
+        type: string
+        default: 'latest'
+      helm_dependency_repos:
+        description: |
+          Newline-separated list of Helm dependency repos to add before packaging.
+          Each line must be: <name> <url>
+          Example: "opentelemetry-collector https://open-telemetry.github.io/opentelemetry-helm-charts"
+        required: false
+        type: string
+        default: ''
+      runs_on:
+        description: 'Runner OS to use'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+    secrets:
+      APP_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
+
+jobs:
+  helm-release:
+    permissions:
+      contents: write
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Update Chart.yaml version
+        run: |
+          sed -i "s/^version:.*/version: ${{ inputs.version }}/" ${{ inputs.chart_path }}/Chart.yaml
+          git add ${{ inputs.chart_path }}/Chart.yaml
+
+      - name: Run Helm Docs
+        uses: losisin/helm-docs-github-action@3a4528e97c49a5e83de6b78c50c61c8ee5c9f944 # v2.0.0
+
+      - name: Install Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: ${{ inputs.helm_version }}
+
+      - name: Add Helm dependency repositories
+        if: inputs.helm_dependency_repos != ''
+        env:
+          HELM_REPOS: ${{ inputs.helm_dependency_repos }}
+        run: |
+          echo "$HELM_REPOS" | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            name=$(echo "$line" | awk '{print $1}')
+            url=$(echo "$line" | awk '{print $2}')
+            helm repo add "$name" "$url"
+          done
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
+        env:
+          CR_TOKEN: ${{ steps.generate-token.outputs.token }}
+        with:
+          skip_existing: true
+
+      - name: Commit changes
+        run: |
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: update Chart.yaml and docs for ${{ inputs.version }} [skip ci]"
+            git push origin main
+          fi
