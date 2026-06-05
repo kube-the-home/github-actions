@@ -98,5 +98,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "chore: update Chart.yaml and docs for ${{ inputs.version }} [skip ci]"
-            git push origin main
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin ${{ github.ref_name }}
           fi
