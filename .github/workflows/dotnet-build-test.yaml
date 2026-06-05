@@ -1,0 +1,49 @@
+name: .NET Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: 'Directory containing the solution or project file'
+        required: false
+        type: string
+        default: '.'
+      dotnet_version:
+        description: '.NET SDK version to use (e.g. 8.0.x, 9.0.x)'
+        required: false
+        type: string
+        default: '8.0.x'
+      configuration:
+        description: 'Build configuration (Debug or Release)'
+        required: false
+        type: string
+        default: 'Release'
+      runs_on:
+        description: 'Runner OS to use'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+
+jobs:
+  build-test:
+    runs-on: ${{ inputs.runs_on }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration ${{ inputs.configuration }}
+
+      - name: Test
+        run: dotnet test --no-build --configuration ${{ inputs.configuration }} --verbosity normal
