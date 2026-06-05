@@ -28,6 +28,32 @@ jobs:
 
 ---
 
+### `dotnet-build-test.yaml`
+
+Restores, builds, and tests a .NET solution or project.
+
+**Inputs**
+
+| Name | Required | Default | Description |
+|---|---|---|---|
+| `working_directory` | no | `.` | Directory containing the solution or project file |
+| `dotnet_version` | no | `8.0.x` | .NET SDK version to use (e.g. `8.0.x`, `9.0.x`) |
+| `configuration` | no | `Release` | Build configuration (`Debug` or `Release`) |
+| `runs_on` | no | `ubuntu-latest` | Runner OS to use |
+
+**Example**
+
+```yaml
+jobs:
+  build:
+    uses: hankeln/github-actions/.github/workflows/dotnet-build-test.yaml@main
+    with:
+      working_directory: src
+      dotnet_version: 9.0.x
+```
+
+---
+
 ### `semantic-release.yaml`
 
 Runs [semantic-release](https://github.com/semantic-release/semantic-release) and outputs the new version. Uses a GitHub App for authentication so that the release commit can trigger downstream workflows.
