@@ -1,0 +1,37 @@
+name: GitOps Linter
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: 'Runner OS to use'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+      fail_on:
+        description: 'Severity level to fail on (error, warning)'
+        required: false
+        type: string
+        default: 'error'
+      upload_sarif:
+        description: 'Upload SARIF results to GitHub Security tab'
+        required: false
+        type: string
+        default: 'false'
+
+jobs:
+  gitops-linter:
+    name: GitOps Linter
+    runs-on: ${{ inputs.runs_on }}
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Run glint
+        uses: lukashankeln/glint@b22d172a3d51d29ec9e21e87a066dc2f613ddeba # v0.1.12
+        with:
+          fail-on: ${{ inputs.fail_on }}
+          upload-sarif: ${{ inputs.upload_sarif }}
