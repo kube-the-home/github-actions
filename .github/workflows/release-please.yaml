@@ -1,0 +1,68 @@
+name: Release Please
+
+on:
+  workflow_call:
+    inputs:
+      release_type:
+        description: 'Release type for release-please (e.g. simple, node, python)'
+        required: false
+        type: string
+        default: 'simple'
+      config_file:
+        description: 'Path to release-please config file'
+        required: false
+        type: string
+        default: 'release-please-config.json'
+      manifest_file:
+        description: 'Path to release-please manifest file'
+        required: false
+        type: string
+        default: '.release-please-manifest.json'
+      runs_on:
+        description: 'Runner OS to use'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+    secrets:
+      APP_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
+    outputs:
+      release_created:
+        description: 'Whether a release was created'
+        value: ${{ jobs.release-please.outputs.release_created }}
+      tag_name:
+        description: 'The tag name of the created release'
+        value: ${{ jobs.release-please.outputs.tag_name }}
+      version:
+        description: 'The version of the created release (without v prefix)'
+        value: ${{ jobs.release-please.outputs.version }}
+
+jobs:
+  release-please:
+    runs-on: ${{ inputs.runs_on }}
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Run release-please
+        id: release
+        uses: google-github-actions/release-please-action@e4dc86ba9405554aeba3c6bb2d169500e7d3b4ee # v4.1.1
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          release-type: ${{ inputs.release_type }}
+          config-file: ${{ inputs.config_file }}
+          manifest-file: ${{ inputs.manifest_file }}
