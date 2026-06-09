@@ -4,29 +4,28 @@ on:
   workflow_call:
     inputs:
       working_directory:
-        description: 'Directory containing the solution or project file'
+        description: "Directory containing the solution or project file"
         required: false
         type: string
-        default: '.'
+        default: "."
       dotnet_version:
-        description: '.NET SDK version to use (e.g. 8.0.x, 9.0.x)'
+        description: ".NET SDK version to use (e.g. 8.0.x, 9.0.x)"
         required: false
         type: string
-        default: '8.0.x'
+        default: "8.0.x"
       runs_on:
-        description: 'Runner OS to use'
+        description: "Runner OS to use"
         required: false
         type: string
-        default: 'ubuntu-latest'
+        default: "ubuntu-latest"
     secrets:
       nuget_api_key:
-        description: 'NuGet API key for pushing packages'
+        description: "NuGet API key for pushing packages"
         required: true
 
 jobs:
   nuget-release:
     runs-on: ${{ inputs.runs_on }}
-    timeout-minutes: 5
     defaults:
       run:
         working-directory: ${{ inputs.working_directory }}
