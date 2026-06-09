@@ -1,0 +1,49 @@
+name: Helm Template
+
+on:
+  workflow_call:
+    inputs:
+      chart_path:
+        description: 'Path to the Helm chart directory (e.g. charts/my-chart)'
+        required: true
+        type: string
+      values:
+        description: 'Values to pass to helm template as a YAML string'
+        required: false
+        type: string
+        default: ''
+      helm_version:
+        description: 'Helm version to install'
+        required: false
+        type: string
+        default: 'latest'
+      runs_on:
+        description: 'Runner OS to use'
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+
+jobs:
+  template:
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: ${{ inputs.helm_version }}
+
+      - name: Run Helm template
+        env:
+          VALUES: ${{ inputs.values }}
+        run: |
+          if [ -n "$VALUES" ]; then
+            printf '%s' "$VALUES" > /tmp/override-values.yaml
+            helm template ${{ inputs.chart_path }} -f /tmp/override-values.yaml
+          else
+            helm template ${{ inputs.chart_path }}
+          fi
