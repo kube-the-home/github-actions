@@ -1,0 +1,40 @@
+name: Go Test
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: "Directory containing the Go module"
+        required: false
+        type: string
+        default: "."
+      go_version:
+        description: "Go version to use (e.g. stable, 1.23.x)"
+        required: false
+        type: string
+        default: "stable"
+      runs_on:
+        description: "Runner OS to use"
+        required: false
+        type: string
+        default: "ubuntu-latest"
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runs_on }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go_version }}
+
+      - name: Test
+        run: go test -v ./...
