@@ -60,7 +60,7 @@ jobs:
 
       - name: Run release-please
         id: release
-        uses: googleapis/release-please-action@f3969c04a4ec81d7a9aa4010d84ae6a7602f86a7 # v4.1.1
+        uses: googleapis/release-please-action@5792afc6b46e9bb55deda9eda973a18c226bc3fc # v4.1.5
         with:
           token: ${{ steps.generate-token.outputs.token }}
           release-type: ${{ inputs.release_type }}
