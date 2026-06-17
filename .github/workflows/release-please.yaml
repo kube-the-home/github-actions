@@ -4,10 +4,10 @@ on:
   workflow_call:
     inputs:
       release_type:
-        description: 'Release type for release-please (e.g. simple, node, python)'
+        description: 'Release type for release-please (e.g. simple, node, python). Leave empty to use config-file only.'
         required: false
         type: string
-        default: 'simple'
+        default: ''
       config_file:
         description: 'Path to release-please config file'
         required: false
