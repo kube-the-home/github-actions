@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Run glint
-        uses: lukashankeln/glint@b22d172a3d51d29ec9e21e87a066dc2f613ddeba # v0.1.12
+        uses: lukashankeln/glint@e155c0d18ab5cc3fb50f2f226f1adeea514b20aa # v0.1.16
         with:
           fail-on: ${{ inputs.fail_on }}
           upload-sarif: ${{ inputs.upload_sarif }}
