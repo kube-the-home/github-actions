@@ -34,4 +34,3 @@ jobs:
         uses: lukashankeln/glint@e155c0d18ab5cc3fb50f2f226f1adeea514b20aa # v0.1.16
         with:
           fail-on: ${{ inputs.fail_on }}
-          upload-sarif: ${{ inputs.upload_sarif }}
