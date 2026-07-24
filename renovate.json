@@ -11,6 +11,13 @@
         "github-actions"
       ],
       "semanticCommitType": "fix"
+    },
+    {
+      "matchUpdateTypes":[
+        "minor",
+        "patch"
+      ],
+      "automerge": "true"
     }
   ]
 }
