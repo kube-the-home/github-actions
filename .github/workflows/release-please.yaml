@@ -82,6 +82,6 @@ jobs:
 
       - name: Auto-merge release PR
         if: ${{ inputs.auto_release && steps.release.outputs.pr }}
-        run: gh pr merge --auto --admin "${{ github.server_url }}/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.pr).number }}"
+        run: gh pr merge --admin "${{ github.server_url }}/${{ github.repository }}/pull/${{ fromJson(steps.release.outputs.pr).number }}"
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
