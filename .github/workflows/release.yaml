@@ -6,7 +6,9 @@ on:
 
 jobs:
   release:
-    uses: ./.github/workflows/semantic-release.yaml
+    uses: ./.github/workflows/release-please.yaml
+    with:
+      auto_release: true
     secrets:
       APP_ID: ${{ secrets.RELEASE_APP_ID }}
       APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PEM }}

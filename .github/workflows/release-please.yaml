@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: '.release-please-manifest.json'
+      auto_release:
+        description: 'Automatically merge the release PR when checks pass'
+        required: false
+        type: boolean
+        default: false
       runs_on:
         description: 'Runner OS to use'
         required: false
@@ -38,6 +43,12 @@ on:
       version:
         description: 'The version of the created release (without v prefix)'
         value: ${{ jobs.release-please.outputs.version }}
+      pr:
+        description: 'The release PR number, if one was created or updated'
+        value: ${{ jobs.release-please.outputs.pr }}
+      pull_request_url:
+        description: 'The URL of the release PR, if one was created or updated'
+        value: ${{ jobs.release-please.outputs.pull_request_url }}
 
 jobs:
   release-please:
@@ -49,6 +60,8 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
+      pr: ${{ steps.release.outputs.pr }}
+      pull_request_url: ${{ steps.release.outputs.pull-request-url }}
     steps:
       - name: Generate a token
         id: generate-token
@@ -66,3 +79,9 @@ jobs:
           release-type: ${{ inputs.release_type }}
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
+
+      - name: Auto-merge release PR
+        if: ${{ inputs.auto_release && steps.release.outputs.pr }}
+        run: gh pr merge --auto --squash "${{ steps.release.outputs.pull-request-url }}"
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
