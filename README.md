@@ -274,7 +274,7 @@ Runs [release-please](https://github.com/googleapis/release-please) to manage re
 | `release_type`   | no       | `simple`                        | Release type (e.g. `simple`, `node`, `python`)                                                                        |
 | `config_file`    | no       | `release-please-config.json`    | Path to release-please config file                                                                                    |
 | `manifest_file`  | no       | `.release-please-manifest.json` | Path to release-please manifest file                                                                                  |
-| `auto_release`   | no       | `false`                         | Automatically approve and merge the release PR once all required checks pass. Requires **Allow auto-merge** enabled in repo settings and at least one required status check. The PR is approved by `github-actions[bot]` (via `GITHUB_TOKEN`) to satisfy the "approved by someone other than the last pusher" rule, then queued for squash merge by the GitHub App. |
+| `auto_release`   | no       | `false`                         | Automatically merge the release PR once all required checks pass. Requires **Allow auto-merge** enabled in repo settings and at least one required status check. The GitHub App used must be configured as a **bypass actor** for branch protection rules. |
 | `runs_on`        | no       | `ubuntu-latest`                 | Runner OS to use                                                                                                      |
 
 **Outputs**
