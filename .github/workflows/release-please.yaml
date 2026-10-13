@@ -82,6 +82,6 @@ jobs:
 
       - name: Auto-merge release PR
         if: ${{ inputs.auto_release && steps.release.outputs.pr }}
-        run: gh pr merge --auto --squash "${{ steps.release.outputs.pull-request-url }}"
+        run: gh pr merge --auto --squash "${{ github.server_url }}/${{ github.repository }}/pull/${{ steps.release.outputs.pr }}"
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
