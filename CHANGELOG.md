@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.16](https://github.com/kube-the-home/github-actions/compare/v1.4.15...v1.4.16) (2026-10-16)
+
+
+### Bug Fixes
+
+* **deps:** update cycjimmy/semantic-release-action action to v8.1.0 ([005e1e1](https://github.com/kube-the-home/github-actions/commit/005e1e14a216283756b8381e454a503d08a76814))
+
 ## [1.4.15](https://github.com/kube-the-home/github-actions/compare/v1.4.14...v1.4.15) (2026-10-13)
 
 
