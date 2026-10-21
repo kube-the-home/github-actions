@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.19](https://github.com/kube-the-home/github-actions/compare/v1.4.18...v1.4.19) (2026-10-21)
+
+
+### Bug Fixes
+
+* **release-please:** invalid action format ([7812862](https://github.com/kube-the-home/github-actions/commit/7812862cc4080b9e77ded104f090ebf4b4877e1e))
+
 ## [1.4.18](https://github.com/kube-the-home/github-actions/compare/v1.4.17...v1.4.18) (2026-10-18)
 
 
