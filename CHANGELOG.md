@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.20](https://github.com/kube-the-home/github-actions/compare/v1.4.19...v1.4.20) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** update actions/setup-python action to v7.1.0 ([8a1ed6c](https://github.com/kube-the-home/github-actions/commit/8a1ed6c663abf2aec3b6998a1874f043d3f69581))
+
 ## [1.4.19](https://github.com/kube-the-home/github-actions/compare/v1.4.18...v1.4.19) (2026-10-21)
 
 
