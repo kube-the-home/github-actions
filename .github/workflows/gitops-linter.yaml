@@ -31,6 +31,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run glint
-        uses: lukashankeln/glint@2e46141852eceae0938e7d380d833ad8c8e4c3ba # v0.2.7
+        uses: lukashankeln/glint@7d7741356fef290bdcf866079326f6ce7d31b719 # v0.2.8
         with:
           fail-on: ${{ inputs.fail_on }}
