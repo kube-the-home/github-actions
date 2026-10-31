@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/kube-the-home/github-actions/compare/v1.5.6...v1.6.0) (2026-10-31)
+
+
+### Features
+
+* switch to own implementation for git conventional commits ([489d85e](https://github.com/kube-the-home/github-actions/commit/489d85ef058f3c2e014fa02f593efae9b5db7a3a))
+
 ## [1.5.6](https://github.com/kube-the-home/github-actions/compare/v1.5.5...v1.5.6) (2026-10-31)
 
 
