@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/kube-the-home/github-actions/compare/v1.5.3...v1.5.4) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** update zizmorcore/zizmor-action action to v0.8.0 ([626d1c4](https://github.com/kube-the-home/github-actions/commit/626d1c413c9eda5b99daee4053f8c3c3a98551fe))
+
 ## [1.5.3](https://github.com/kube-the-home/github-actions/compare/v1.5.2...v1.5.3) (2026-10-31)
 
 
