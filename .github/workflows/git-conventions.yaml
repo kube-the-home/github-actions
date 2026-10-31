@@ -1,4 +1,4 @@
-name: Git Conventions
+name: Conventional Commits
 
 on:
   workflow_call:
@@ -8,14 +8,98 @@ on:
         required: false
         type: string
         default: 'ubuntu-latest'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  conventional-commits:
-    name: Conventional Commits
-    runs-on: ${{ inputs.runs_on }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+  validate-commits:
+    name: Validate commit messages
+    runs-on: ${{ inputs.runs_on || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      pull-requests: read
 
-      - name: Check conventional commits
-        uses: webiny/action-conventional-commits@7f91b1595ca1951cdb671ddc9f07a49081ec5b69 # v1.4.2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          # Conventional Commits format:
+          #   <type>(<scope>)?: <description>
+          # Allowed types: feat, fix, docs, chore, refactor, test, perf, ci, build, revert, style
+          # Scope (optional): any lowercase alphanumeric with hyphens
+          # Description: must start with lowercase or number, max 50 chars recommended
+
+          TYPES="(feat|fix|docs|chore|refactor|test|perf|ci|build|revert|style)"
+          PATTERN="^${TYPES}(\([a-z0-9-]+\))?!?: [a-z0-9].*"
+
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          if [[ -z "$BASE" ]] || [[ -z "$HEAD" ]]; then
+            echo "⚠️  Skipping validation: PR merge base not found (likely a new PR)"
+            exit 0
+          fi
+
+          COMMITS=$(git log --format="%H %s" "$BASE".."$HEAD")
+
+          if [[ -z "$COMMITS" ]]; then
+            echo "✓ No new commits to validate"
+            exit 0
+          fi
+
+          echo "Validating $(echo "$COMMITS" | wc -l) commit(s)..."
+          echo ""
+
+          FAILED=0
+          while IFS=" " read -r HASH MSG; do
+            [[ -z "$MSG" ]] && continue
+
+            if echo "$MSG" | grep -qE "$PATTERN"; then
+              echo "✓ $(echo $HASH | cut -c1-7) $MSG"
+            else
+              echo "✗ $(echo $HASH | cut -c1-7) $MSG"
+              FAILED=1
+            fi
+          done <<< "$COMMITS"
+
+          if [[ $FAILED -ne 0 ]]; then
+            echo ""
+            echo "❌ Validation failed: one or more commits do not follow Conventional Commits"
+            echo ""
+            echo "📋 Expected format:"
+            echo "   <type>(<scope>)?: <description>"
+            echo ""
+            echo "Valid types:"
+            echo "   feat     — new feature"
+            echo "   fix      — bug fix"
+            echo "   docs     — documentation"
+            echo "   chore    — maintenance, deps, config"
+            echo "   refactor — code restructuring"
+            echo "   test     — test changes"
+            echo "   perf     — performance improvement"
+            echo "   ci       — CI/CD changes"
+            echo "   build    — build system changes"
+            echo "   revert   — revert a commit"
+            echo "   style    — code style (whitespace, formatting)"
+            echo ""
+            echo "Optional scope:"
+            echo "   any lowercase alphanumeric identifier (with hyphens)"
+            echo ""
+            echo "✓ Examples:"
+            echo "   feat(api): add parallel job execution"
+            echo "   fix(docs): correct installation steps"
+            echo "   docs: update README"
+            echo "   chore(deps): bump dependencies"
+            echo ""
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ All commits follow Conventional Commits format"
