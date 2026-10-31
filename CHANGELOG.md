@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.3](https://github.com/kube-the-home/github-actions/compare/v1.5.2...v1.5.3) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** update docker/login-action action to v4.7.0 ([a755ee9](https://github.com/kube-the-home/github-actions/commit/a755ee940485b403e3e1d3d3d89835409d014afe))
+
 ## [1.5.2](https://github.com/kube-the-home/github-actions/compare/v1.5.1...v1.5.2) (2026-10-31)
 
 
