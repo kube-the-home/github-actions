@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/kube-the-home/github-actions/compare/v1.5.1...v1.5.2) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** update lukashankeln/glint action to v0.3.0 ([fece4d9](https://github.com/kube-the-home/github-actions/commit/fece4d9e9ba11ec9ba17169f494c497700bafd26))
+
 ## [1.5.1](https://github.com/kube-the-home/github-actions/compare/v1.5.0...v1.5.1) (2026-10-24)
 
 
