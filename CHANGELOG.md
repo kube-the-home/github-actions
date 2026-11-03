@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/kube-the-home/github-actions/compare/v1.6.0...v1.6.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** update actions/setup-dotnet action to v6.1.0 ([31cd91d](https://github.com/kube-the-home/github-actions/commit/31cd91d2d96abed1c838f06a5f77812f011c73e1))
+
 ## [1.6.0](https://github.com/kube-the-home/github-actions/compare/v1.5.6...v1.6.0) (2026-10-31)
 
 
