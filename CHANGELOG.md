@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/kube-the-home/github-actions/compare/v1.6.2...v1.6.3) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** update helm/chart-releaser-action action to v1.9.0 ([5958183](https://github.com/kube-the-home/github-actions/commit/59581839df82867153faabb99b90ff62ada4c1f2))
+
 ## [1.6.2](https://github.com/kube-the-home/github-actions/compare/v1.6.1...v1.6.2) (2026-11-03)
 
 
