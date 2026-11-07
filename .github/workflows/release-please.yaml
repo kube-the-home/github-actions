@@ -23,6 +23,11 @@ on:
         required: false
         type: boolean
         default: false
+      label_release_type:
+        description: 'Label the release PR with updateType:patch|minor|major based on the version bump'
+        required: false
+        type: boolean
+        default: true
       runs_on:
         description: 'Runner OS to use'
         required: false
@@ -56,6 +61,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -70,6 +76,10 @@ jobs:
           client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
 
       - name: Run release-please
         id: release
@@ -79,6 +89,67 @@ jobs:
           release-type: ${{ inputs.release_type }}
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
+
+      - name: Label release PR with update type
+        if: ${{ inputs.label_release_type && steps.release.outputs.pr }}
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER=$(jq -r '.number' <<< "$PR_JSON")
+          HEAD_BRANCH=$(jq -r '.headBranchName' <<< "$PR_JSON")
+          BASE_BRANCH=$(jq -r '.baseBranchName' <<< "$PR_JSON")
+
+          fetch_manifest() {
+            gh api "repos/${REPOSITORY}/contents/${MANIFEST_FILE}?ref=$1" --jq '.content' | base64 --decode
+          }
+
+          OLD_MANIFEST=$(fetch_manifest "$BASE_BRANCH")
+          NEW_MANIFEST=$(fetch_manifest "$HEAD_BRANCH")
+
+          UPDATE_TYPE=""
+          for path in $(jq -r 'keys[]' <<< "$NEW_MANIFEST"); do
+            OLD_V=$(jq -r --arg p "$path" '.[$p] // empty' <<< "$OLD_MANIFEST")
+            NEW_V=$(jq -r --arg p "$path" '.[$p] // empty' <<< "$NEW_MANIFEST")
+
+            if [ -z "$OLD_V" ] || [ "$OLD_V" = "$NEW_V" ]; then
+              continue
+            fi
+
+            IFS='.' read -r OLD_MAJOR OLD_MINOR _ <<< "$OLD_V"
+            IFS='.' read -r NEW_MAJOR NEW_MINOR _ <<< "$NEW_V"
+
+            if [ "$NEW_MAJOR" != "$OLD_MAJOR" ]; then
+              TYPE="major"
+            elif [ "$NEW_MINOR" != "$OLD_MINOR" ]; then
+              TYPE="minor"
+            else
+              TYPE="patch"
+            fi
+
+            case "$TYPE" in
+              major) UPDATE_TYPE="major" ;;
+              minor) [ "$UPDATE_TYPE" != "major" ] && UPDATE_TYPE="minor" ;;
+              patch) [ -z "$UPDATE_TYPE" ] && UPDATE_TYPE="patch" ;;
+            esac
+          done
+
+          if [ -z "$UPDATE_TYPE" ]; then
+            echo "Could not determine version bump from manifest diff; skipping label"
+            exit 0
+          fi
+
+          for other in major minor patch; do
+            if [ "$other" != "$UPDATE_TYPE" ]; then
+              gh pr edit "$PR_NUMBER" --repo "$REPOSITORY" --remove-label "updateType:${other}" 2>/dev/null || true
+            fi
+          done
+
+          gh pr edit "$PR_NUMBER" --repo "$REPOSITORY" --add-label "updateType:${UPDATE_TYPE}"
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+          MANIFEST_FILE: ${{ inputs.manifest_file }}
+          PR_JSON: ${{ steps.release.outputs.pr }}
 
       - name: Auto-merge release PR
         if: ${{ inputs.auto_release && steps.release.outputs.pr }}

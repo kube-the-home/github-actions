@@ -1,0 +1,16 @@
+name: Automerge Patch Release PR
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  automerge:
+    uses: $/.github/workflows/automerge-approved.yml
+    with:
+      label: 'autorelease: pending,updateType:patch'
+      admin_merge: true
+    secrets:
+      APP_ID: ${{ secrets.RELEASE_APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PEM }}

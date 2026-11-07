@@ -1,0 +1,195 @@
+name: Automerge
+
+on:
+  workflow_call:
+    secrets:
+      RELEASE_TOKEN:
+        required: false
+      APP_ID:
+        required: false
+      APP_PRIVATE_KEY:
+        required: false
+    inputs:
+      label:
+        description: 'Label(s) that mark PRs eligible for automerge. Comma-separated to require all of them.'
+        required: false
+        default: 'automerge-approved'
+        type: string
+      merge_method:
+        description: 'Merge method to use: merge, squash, or rebase'
+        required: false
+        default: 'rebase'
+        type: string
+      delete_branch:
+        description: 'Delete the head branch after merging'
+        required: false
+        default: true
+        type: boolean
+      admin_merge:
+        description: 'Merge with administrator privileges, bypassing required reviews/status checks. The merging actor must have bypass/admin rights on the repo.'
+        required: false
+        default: false
+        type: boolean
+      runner:
+        description: 'Runner to use for the job'
+        required: false
+        default: 'self-hosted'
+        type: string
+      gh_version:
+        description: 'GitHub CLI version to install (e.g. v2.72.0)'
+        required: false
+        default: 'v2.103.3' # renovate: datasource=github-releases depName=cli/cli
+        type: string
+
+jobs:
+  automerge:
+    runs-on: ${{ inputs.runner }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check auth configuration
+        id: auth-check
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          if [ -n "${APP_ID}" ] && [ -n "${APP_PRIVATE_KEY}" ]; then
+            echo "use_app_auth=true" >> $GITHUB_OUTPUT
+          else
+            echo "use_app_auth=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate a token
+        id: generate-token
+        if: steps.auth-check.outputs.use_app_auth == 'true'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - name: Install GitHub CLI
+        env:
+          GH_VERSION: ${{ inputs.gh_version }}
+        run: |
+          ARCH=$(uname -m)
+          case "${ARCH}" in
+            x86_64)  ARCH=amd64 ;;
+            aarch64) ARCH=arm64 ;;
+            armv6l)  ARCH=armv6 ;;
+            *)       echo "Unsupported architecture: ${ARCH}"; exit 1 ;;
+          esac
+          VERSION="${GH_VERSION#v}"
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${VERSION}/gh_${VERSION}_linux_${ARCH}.tar.gz" \
+            | tar -xz -C /tmp
+          echo "/tmp/gh_${VERSION}_linux_${ARCH}/bin" >> $GITHUB_PATH
+
+      - name: Merge labelled PRs
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token || secrets.RELEASE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+          LABEL: ${{ inputs.label }}
+          MERGE_METHOD: ${{ inputs.merge_method }}
+          DELETE_BRANCH: ${{ inputs.delete_branch }}
+          ADMIN_MERGE: ${{ inputs.admin_merge }}
+        run: |
+          IFS=',' read -ra LABEL_PARTS <<< "${LABEL}"
+          LABEL_ARGS=()
+          for PART in "${LABEL_PARTS[@]}"; do
+            TRIMMED="$(echo -n "${PART}" | xargs)"
+            [ -n "${TRIMMED}" ] && LABEL_ARGS+=(--label "${TRIMMED}")
+          done
+
+          echo "Fetching open PRs with label(s) '${LABEL}'..."
+          PR_LIST=$(gh pr list \
+            "${LABEL_ARGS[@]}" \
+            --state open \
+            --json number,title,mergeable,mergeStateStatus)
+
+          PR_COUNT=$(echo "${PR_LIST}" | jq 'length')
+
+          echo "## Automerge Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${PR_COUNT}" -eq 0 ]; then
+            echo "No open PRs found with label '${LABEL}'."
+            echo "No open PRs found with label \`${LABEL}\`." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          echo "Found ${PR_COUNT} PR(s) with label '${LABEL}'."
+          echo "Found ${PR_COUNT} PR(s) with label \`${LABEL}\`." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| PR | Title | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----|-------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          MERGED=0
+          SKIPPED=0
+          FAILED=0
+
+          for NUMBER in $(echo "${PR_LIST}" | jq -r '.[].number'); do
+            TITLE=$(echo "${PR_LIST}" | jq -r ".[] | select(.number == ${NUMBER}) | .title")
+            MERGEABLE=$(echo "${PR_LIST}" | jq -r ".[] | select(.number == ${NUMBER}) | .mergeable")
+            STATE=$(echo "${PR_LIST}" | jq -r ".[] | select(.number == ${NUMBER}) | .mergeStateStatus")
+
+            echo "---"
+            echo "PR #${NUMBER}: ${TITLE}"
+            echo "  mergeable=${MERGEABLE} state=${STATE}"
+
+            # GitHub may not have computed the merge state yet — retry up to 5 times
+            RETRIES=0
+            while [ "${STATE}" == "UNKNOWN" ] && [ "${RETRIES}" -lt 5 ]; do
+              RETRIES=$((RETRIES + 1))
+              echo "  State is UNKNOWN, retrying in 10s... (${RETRIES}/5)"
+              sleep 10
+              PR_DATA=$(gh pr view "${NUMBER}" --json mergeable,mergeStateStatus)
+              MERGEABLE=$(echo "${PR_DATA}" | jq -r '.mergeable')
+              STATE=$(echo "${PR_DATA}" | jq -r '.mergeStateStatus')
+              echo "  mergeable=${MERGEABLE} state=${STATE}"
+            done
+
+            MERGE_ARGS=("${NUMBER}" "--${MERGE_METHOD}")
+            [ "${DELETE_BRANCH}" == "true" ] && MERGE_ARGS+=(--delete-branch)
+            [ "${ADMIN_MERGE}" == "true" ] && MERGE_ARGS+=(--admin)
+
+            READY=false
+            if [ "${ADMIN_MERGE}" == "true" ]; then
+              # Admin merge bypasses required reviews/status checks, but can't
+              # fix an actual conflict or merge a draft PR.
+              if [ "${MERGEABLE}" != "CONFLICTING" ] && [ "${STATE}" != "DRAFT" ]; then
+                READY=true
+              fi
+            elif [ "${MERGEABLE}" == "MERGEABLE" ] && [ "${STATE}" == "CLEAN" ]; then
+              READY=true
+            fi
+
+            if [ "${READY}" == "true" ]; then
+              SUFFIX=""
+              [ "${ADMIN_MERGE}" == "true" ] && SUFFIX=" (admin)"
+              echo "  Merging with method '${MERGE_METHOD}'${SUFFIX}..."
+              if gh pr merge "${MERGE_ARGS[@]}"; then
+                echo "  Merged successfully."
+                echo "| [#${NUMBER}](${GITHUB_SERVER_URL}/${GH_REPO}/pull/${NUMBER}) | ${TITLE} | Merged |" >> $GITHUB_STEP_SUMMARY
+                MERGED=$((MERGED + 1))
+              else
+                echo "  ::error::Failed to merge PR #${NUMBER}."
+                echo "| [#${NUMBER}](${GITHUB_SERVER_URL}/${GH_REPO}/pull/${NUMBER}) | ${TITLE} | Failed |" >> $GITHUB_STEP_SUMMARY
+                FAILED=$((FAILED + 1))
+              fi
+            else
+              echo "  Skipping — not ready (mergeable=${MERGEABLE}, state=${STATE})."
+              echo "| [#${NUMBER}](${GITHUB_SERVER_URL}/${GH_REPO}/pull/${NUMBER}) | ${TITLE} | Skipped (${STATE}) |" >> $GITHUB_STEP_SUMMARY
+              SKIPPED=$((SKIPPED + 1))
+            fi
+          done
+
+          echo "---"
+          echo "Done. Merged=${MERGED} Skipped=${SKIPPED} Failed=${FAILED}"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Merged:** ${MERGED} | **Skipped:** ${SKIPPED} | **Failed:** ${FAILED}" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${FAILED}" -gt 0 ]; then
+            echo "::warning::${FAILED} PR(s) failed to merge."
+          fi
