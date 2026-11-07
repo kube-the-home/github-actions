@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.4](https://github.com/kube-the-home/github-actions/compare/v1.6.3...v1.6.4) (2026-11-07)
+
+
+### Bug Fixes
+
+* **deps:** update docker/login-action action to v4.8.0 ([da29aa7](https://github.com/kube-the-home/github-actions/commit/da29aa7f4519595d8eb740519985b30cc688fb8d))
+* **deps:** update lukashankeln/glint action to v0.3.1 ([60a2e90](https://github.com/kube-the-home/github-actions/commit/60a2e900f6a949e849823d28d9024a4c3410c594))
+* move github actions to weekly release cycle ([d903a86](https://github.com/kube-the-home/github-actions/commit/d903a86cd80080f569ce39752f83f5b1772b2e08))
+
 ## [1.6.3](https://github.com/kube-the-home/github-actions/compare/v1.6.2...v1.6.3) (2026-11-03)
 
 
