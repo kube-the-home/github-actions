@@ -33,7 +33,7 @@ on:
       runner:
         description: 'Runner to use for the job'
         required: false
-        default: 'self-hosted'
+        default: 'ubuntu-latest'
         type: string
       gh_version:
         description: 'GitHub CLI version to install (e.g. v2.72.0)'
