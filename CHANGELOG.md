@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.5](https://github.com/kube-the-home/github-actions/compare/v1.6.4...v1.6.5) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update azure/setup-helm action to v5.1.0 ([b57c04d](https://github.com/kube-the-home/github-actions/commit/b57c04d1d2cfd81d073ecbcd7680cc7ecd57a6cd))
+* **deps:** update lukashankeln/glint action to v0.3.3 ([7787ab3](https://github.com/kube-the-home/github-actions/commit/7787ab3c2710c5f59de35f8f826d0c97fd3bef93))
+
 ## [1.6.4](https://github.com/kube-the-home/github-actions/compare/v1.6.3...v1.6.4) (2026-11-08)
 
 
