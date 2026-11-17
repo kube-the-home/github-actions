@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.6](https://github.com/kube-the-home/github-actions/compare/v1.6.5...v1.6.6) (2026-11-17)
+
+
+### Bug Fixes
+
+* **deps:** update actions/setup-go action to v7.1.0 ([2cffe2c](https://github.com/kube-the-home/github-actions/commit/2cffe2ceae8ce85ed8b634aeb272054529b3e51f))
+
 ## [1.6.5](https://github.com/kube-the-home/github-actions/compare/v1.6.4...v1.6.5) (2026-11-12)
 
 
