@@ -27,8 +27,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate commit messages
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           # Conventional Commits format:
           #   <type>(<scope>)?: <description>
@@ -38,9 +42,6 @@ jobs:
 
           TYPES="(feat|fix|docs|chore|refactor|test|perf|ci|build|revert|style)"
           PATTERN="^${TYPES}(\([a-z0-9-]+\))?!?: [a-z0-9].*"
-
-          BASE="${{ github.event.pull_request.base.sha }}"
-          HEAD="${{ github.event.pull_request.head.sha }}"
 
           if [[ -z "$BASE" ]] || [[ -z "$HEAD" ]]; then
             echo "⚠️  Skipping validation: PR merge base not found (likely a new PR)"
