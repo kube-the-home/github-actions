@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Configure Git Credentials
         run: |
@@ -51,4 +52,11 @@ jobs:
         run: pip install mkdocs-material
 
       - name: Deploy docs
+        env:
+          # Credentials are not persisted by checkout; provide them only to this
+          # step via a step-scoped git credential helper.
+          GIT_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: '!f() { echo username=x-access-token; echo "password=${GIT_TOKEN}"; }; f'
         run: mkdocs gh-deploy --force
