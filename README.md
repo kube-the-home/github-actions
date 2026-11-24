@@ -151,32 +151,34 @@ jobs:
 
 ### `dotnet-nuget-release.yaml`
 
-Builds, packs, and pushes a .NET project to NuGet.
+Builds, packs, and pushes a .NET project to NuGet using [trusted publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing) (GitHub OIDC). No API key secret is needed.
 
-**Secrets**
+**Prerequisites**
 
-| Name            | Required | Description                        |
-| --------------- | -------- | ---------------------------------- |
-| `nuget_api_key` | yes      | NuGet API key for pushing packages |
+- A trusted publishing policy on nuget.org for the calling repository and the workflow file that calls this one.
+- The calling job must grant `id-token: write` (and `contents: read`).
 
 **Inputs**
 
-| Name                | Required | Default         | Description                                       |
-| ------------------- | -------- | --------------- | ------------------------------------------------- |
-| `working_directory` | no       | `.`             | Directory containing the solution or project file |
-| `dotnet_version`    | no       | `8.0.x`         | .NET SDK version to use (e.g. `8.0.x`, `9.0.x`)   |
-| `runs_on`           | no       | `ubuntu-latest` | Runner OS to use                                  |
+| Name                | Required | Default         | Description                                                          |
+| ------------------- | -------- | --------------- | -------------------------------------------------------------------- |
+| `nuget_user`        | yes      | —               | nuget.org username (profile name, not email) that owns the policy    |
+| `working_directory` | no       | `.`             | Directory containing the solution or project file                    |
+| `dotnet_version`    | no       | `8.0.x`         | .NET SDK version to use (e.g. `8.0.x`, `9.0.x`)                      |
+| `runs_on`           | no       | `ubuntu-latest` | Runner OS to use                                                     |
 
 **Example**
 
 ```yaml
 jobs:
   nuget:
+    permissions:
+      contents: read
+      id-token: write
     uses: hankeln/github-actions/.github/workflows/dotnet-nuget-release.yaml@main
     with:
       working_directory: src
-    secrets:
-      nuget_api_key: ${{ secrets.NUGET_API_KEY }}
+      nuget_user: my-nuget-user
 ```
 
 ---

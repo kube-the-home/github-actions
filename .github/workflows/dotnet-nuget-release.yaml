@@ -18,14 +18,17 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
-    secrets:
-      nuget_api_key:
-        description: "NuGet API key for pushing packages"
+      nuget_user:
+        description: "nuget.org username (profile name, not email) that owns the trusted publishing policy"
         required: true
+        type: string
 
 jobs:
   nuget-release:
     runs-on: ${{ inputs.runs_on }}
+    permissions:
+      contents: read
+      id-token: write # required for NuGet trusted publishing (OIDC)
     defaults:
       run:
         working-directory: ${{ inputs.working_directory }}
@@ -47,7 +50,13 @@ jobs:
       - name: Pack nugets
         run: dotnet pack -c Release --no-build --output .
 
+      - name: NuGet login (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ inputs.nuget_user }}
+
       - name: Push to NuGet
         env:
-          NUGET_API_KEY: ${{ secrets.nuget_api_key }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: dotnet nuget push "*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
