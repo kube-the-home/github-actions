@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install Helm
         uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
@@ -33,4 +34,6 @@ jobs:
           version: ${{ inputs.helm_version }}
 
       - name: Run Helm lint
-        run: helm lint ${{ inputs.chart_path }}
+        env:
+          CHART_PATH: ${{ inputs.chart_path }}
+        run: helm lint "$CHART_PATH"
