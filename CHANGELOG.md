@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.6.7](https://github.com/kube-the-home/github-actions/compare/v1.6.6...v1.6.7) (2026-11-24)
+
+
+### Bug Fixes
+
+* **automerge-approved:** request explicit GitHub App token permissions ([e968a55](https://github.com/kube-the-home/github-actions/commit/e968a55b0982d3af6f95405990fe5a3c7de8a260))
+* **automerge-patch-release:** restrict default token permissions ([dae495c](https://github.com/kube-the-home/github-actions/commit/dae495c32c46dc0e9838c89b7e1f384dbff1efab))
+* **deps:** update actions/create-github-app-token action to v3.4.0 ([e2acbc2](https://github.com/kube-the-home/github-actions/commit/e2acbc2a4f2543692604f426c61bd368cde10ea8))
+* **deps:** update zizmorcore/zizmor-action action to v0.9.0 ([5c9469b](https://github.com/kube-the-home/github-actions/commit/5c9469b076e4778fc9d8c87b44ca17b21d8887be))
+* **docker-build:** do not persist checkout credentials ([ac9397b](https://github.com/kube-the-home/github-actions/commit/ac9397ba1b0493edde02269a7b3854b73a2ef3ea))
+* **dotnet-build-test:** avoid template injection and credential persistence ([f90221a](https://github.com/kube-the-home/github-actions/commit/f90221ab3ff23828fee9f66fb999f01ba70627e3))
+* **dotnet-nuget-release:** do not persist checkout credentials ([92a27d6](https://github.com/kube-the-home/github-actions/commit/92a27d641d934df21b789ac20a458bf6b26cde24))
+* **dotnet-nuget-release:** switch to NuGet trusted publishing ([dc448b0](https://github.com/kube-the-home/github-actions/commit/dc448b0e6a3319a1ea81c08841fa95338ad80628))
+* **git-conventions:** do not persist checkout credentials ([dfdcabf](https://github.com/kube-the-home/github-actions/commit/dfdcabf371b327e99b80782e2b0bd1f926f8c8c0))
+* **gitops-linter:** do not persist checkout credentials ([1f9e1a6](https://github.com/kube-the-home/github-actions/commit/1f9e1a6693e4986d863e416c6ab6dbfb8fea65cd))
+* **golang-build:** do not persist checkout credentials ([44c593e](https://github.com/kube-the-home/github-actions/commit/44c593e1c16b3fab6d5767df78786851e37f4876))
+* **golang-lint:** do not persist checkout credentials ([511037b](https://github.com/kube-the-home/github-actions/commit/511037b5d9228ee1ec21cca49ee7e88296dd7bf6))
+* **golang-test:** do not persist checkout credentials ([f186d0b](https://github.com/kube-the-home/github-actions/commit/f186d0b3fdbcff0ac0867ad79454b660ecb776ac))
+* **helm-lint:** avoid template injection and credential persistence ([e383cc1](https://github.com/kube-the-home/github-actions/commit/e383cc1d5b27bdd8ae841b6415ae2a0f987652ec))
+* **helm-release:** harden token usage and avoid template injection ([72304e2](https://github.com/kube-the-home/github-actions/commit/72304e2ca2ed03a59b46e5bd1540d10bdbbad592))
+* **helm-template:** avoid template injection and credential persistence ([a6e032c](https://github.com/kube-the-home/github-actions/commit/a6e032cb31b889dd8b890dcb6c41590c849975fc))
+* **mkdocs:** do not persist checkout credentials ([a78f280](https://github.com/kube-the-home/github-actions/commit/a78f28019095da8dfa86b9cc9710c533ecead3a4))
+* **semantic-release:** scope app token and do not persist credentials ([6bffb54](https://github.com/kube-the-home/github-actions/commit/6bffb54fff785f3e3040ce3b892c4a4237e0d07c))
+* **yamllint:** do not persist checkout credentials ([66ce9f7](https://github.com/kube-the-home/github-actions/commit/66ce9f722a2705e6ab8afcca7457a77e88baa74a))
+
 ## [1.6.6](https://github.com/kube-the-home/github-actions/compare/v1.6.5...v1.6.6) (2026-11-17)
 
 
