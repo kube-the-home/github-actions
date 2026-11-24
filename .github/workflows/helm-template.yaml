@@ -31,6 +31,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install Helm
         uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
@@ -40,10 +41,11 @@ jobs:
       - name: Run Helm template
         env:
           VALUES: ${{ inputs.values }}
+          CHART_PATH: ${{ inputs.chart_path }}
         run: |
           if [ -n "$VALUES" ]; then
             printf '%s' "$VALUES" > /tmp/override-values.yaml
-            helm template ${{ inputs.chart_path }} -f /tmp/override-values.yaml
+            helm template "$CHART_PATH" -f /tmp/override-values.yaml
           else
-            helm template ${{ inputs.chart_path }}
+            helm template "$CHART_PATH"
           fi
