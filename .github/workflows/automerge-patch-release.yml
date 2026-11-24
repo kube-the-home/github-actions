@@ -5,8 +5,13 @@ on:
     - cron: '0 5 * * 1'
   workflow_dispatch: {}
 
+permissions: {}
+
 jobs:
   automerge:
+    permissions:
+      contents: write
+      pull-requests: write
     uses: $/.github/workflows/automerge-approved.yml
     with:
       label: 'autorelease: pending,updateType:patch'
