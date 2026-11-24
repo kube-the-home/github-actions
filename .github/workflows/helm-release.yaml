@@ -48,12 +48,15 @@ jobs:
           client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
+          persist-credentials: false
 
       - name: Configure Git
         run: |
@@ -61,9 +64,12 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Update Chart.yaml version
+        env:
+          VERSION: ${{ inputs.version }}
+          CHART_PATH: ${{ inputs.chart_path }}
         run: |
-          sed -i "s/^version:.*/version: ${{ inputs.version }}/" ${{ inputs.chart_path }}/Chart.yaml
-          git add ${{ inputs.chart_path }}/Chart.yaml
+          sed -i "s/^version:.*/version: ${VERSION}/" "${CHART_PATH}/Chart.yaml"
+          git add "${CHART_PATH}/Chart.yaml"
 
       - name: Run Helm Docs
         uses: losisin/helm-docs-github-action@9e0787c426fdec38be6288bb5c0559dcb388412c # v2.0.1
@@ -89,15 +95,28 @@ jobs:
         uses: helm/chart-releaser-action@92c6b97fa9f664492a2592e0d1d80bc6bf378957 # v1.9.0
         env:
           CR_TOKEN: ${{ steps.generate-token.outputs.token }}
+          # Credentials are not persisted by checkout; provide them only to the
+          # steps that need to push, via a step-scoped git credential helper.
+          GIT_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: '!f() { echo username=x-access-token; echo "password=${GIT_TOKEN}"; }; f'
         with:
           skip_existing: true
 
       - name: Commit changes
+        env:
+          VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          GIT_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: '!f() { echo username=x-access-token; echo "password=${GIT_TOKEN}"; }; f'
         run: |
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore: update Chart.yaml and docs for ${{ inputs.version }} [skip ci]"
-            git pull --rebase origin ${{ github.ref_name }}
-            git push origin ${{ github.ref_name }}
+            git commit -m "chore: update Chart.yaml and docs for ${VERSION} [skip ci]"
+            git pull --rebase origin "${REF_NAME}"
+            git push origin "${REF_NAME}"
           fi
