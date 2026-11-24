@@ -35,6 +35,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
@@ -45,7 +46,11 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore --configuration ${{ inputs.configuration }}
+        env:
+          CONFIGURATION: ${{ inputs.configuration }}
+        run: dotnet build --no-restore --configuration "$CONFIGURATION"
 
       - name: Test
-        run: dotnet test --no-build --configuration ${{ inputs.configuration }} --verbosity normal
+        env:
+          CONFIGURATION: ${{ inputs.configuration }}
+        run: dotnet test --no-build --configuration "$CONFIGURATION" --verbosity normal
